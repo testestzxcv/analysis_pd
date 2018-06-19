@@ -109,6 +109,7 @@ def crawling_tourspot_visitor(
 
 def crawling_foreign_visitor(country, start_year, end_year, fetch=True, result_directory='', service_key=''):
     results = []
+    filename = '%s/%s(%s)_foreignvisitor_%s_%s.json' % (result_directory, country[0], country[1], start_year, end_year)
 
     if fetch:
         for year in range(start_year, end_year+1):
@@ -122,12 +123,11 @@ def crawling_foreign_visitor(country, start_year, end_year, fetch=True, result_d
                 results.append(data)
 
         # save data to file
-        filename = '%s/%s(%s)_foreignvisitor_%s_%s.json' % (result_directory, country[0], country[1], start_year, end_year)
         with open(filename, 'w', encoding='utf-8') as outfile:  # with를 쓰면 블럭 빠져나올때 자동으로 닫힌다
             json_string = json.dumps(results, indent=4, sort_keys=True, ensure_ascii=False) #indent 들여쓰기 4번
             outfile.write(json_string)
 
-
+    return filename
 
 
 
