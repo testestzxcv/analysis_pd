@@ -74,4 +74,26 @@ def analysis_correlation(resultfiles):
 
 
 def analysis_correlation_by_tourspot(resultfiles):
-    pass
+    with open(resultfiles['tourspot_visitor'], 'r', encoding='utf-8') as infile:
+        json_data = json.loads(infile.read())   # 서울특별시 파일에서 읽어온 데이터를 json 형식으로 저장
+
+    tourspotvisitor_table = pd.DataFrame(json_data, columns=['count_foreigner', 'date', 'tourist_spot'])
+    temp_tourspotvisitor_table = pd.DataFrame(tourspotvisitor_table.groupby('date')['count_foreigner'].sum())   # date와 외국 방문자수 데이터 폼
+
+    results = []
+    for filename in resultfiles['foreign_visitor']: # 외국 데이터 문서 전체 순환
+        with open(filename, 'r', encoding='utf-8') as infile:
+            json_data = json.loads(infile.read())   # 외국 데이터 파일을 읽어서 변수에 저장
+
+        foreignvisitor_table = pd.DataFrame(json_data, columns = ['country_name', 'date', 'visit_count'])
+        foreignvisitor_table = foreignvisitor_table.set_index('date')
+        merge_table = pd.merge(temp_tourspotvisitor_table, foreignvisitor_table, left_index=True, right_index=True) # 테이블 병합
+
+        x = list(merge_table['visit_count'])    # visit_count 데이터 리스트로 저장
+        y = list(merge_table['count_foreigner'])    # count_foreigner 데이터 리스트로 저장
+        country_name = (foreignvisitor_table['country_name'].unique()).item(0)  # unique는 중복되는 값을 줄여준다. 나라이름 저장
+        r = []
+        for i in x:
+            r.append(ss.pearsonr(x, y)[i])    # 상관계수 뽑기
+
+        # return r
