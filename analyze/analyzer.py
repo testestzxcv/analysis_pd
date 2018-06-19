@@ -76,24 +76,48 @@ def analysis_correlation(resultfiles):
 def analysis_correlation_by_tourspot(resultfiles):
     with open(resultfiles['tourspot_visitor'], 'r', encoding='utf-8') as infile:
         json_data = json.loads(infile.read())   # 서울특별시 파일에서 읽어온 데이터를 json 형식으로 저장
+        # print("json_data ===", json_data)
 
-    tourspotvisitor_table = pd.DataFrame(json_data, columns=['count_foreigner', 'date', 'tourist_spot'])
-    temp_tourspotvisitor_table = pd.DataFrame(tourspotvisitor_table.groupby('date')['count_foreigner'].sum())   # date와 외국 방문자수 데이터 폼
+    tourspot_table = pd.DataFrame(json_data, columns=['tourist_spot', 'count_foreigner', 'date'])
+    print("fore====",tourspot_table)
 
     results = []
-    for filename in resultfiles['foreign_visitor']: # 외국 데이터 문서 전체 순환
+    for filename in resultfiles['foreign_visitor']:
         with open(filename, 'r', encoding='utf-8') as infile:
-            json_data = json.loads(infile.read())   # 외국 데이터 파일을 읽어서 변수에 저장
+            json_data = json.loads(infile.read())
+            # print("json data infile === ", json_data)
 
-        foreignvisitor_table = pd.DataFrame(json_data, columns = ['country_name', 'date', 'visit_count'])
-        foreignvisitor_table = foreignvisitor_table.set_index('date')
-        merge_table = pd.merge(temp_tourspotvisitor_table, foreignvisitor_table, left_index=True, right_index=True) # 테이블 병합
+        foreignvisitor_table = pd.DataFrame(json_data, columns=['country_name', 'date', 'visit_count'])
+        print("foreignvisitor_table === ", foreignvisitor_table)
+        # foreignvisitor_table = foreignvisitor_table.set_index('date')
+        # print("fore table.index date 222 ===", foreignvisitor_table)  ##
+        merge_table = pd.merge(tourspot_table, foreignvisitor_table, left_index=True,
+                               right_index=True)  # 테이블 병합
+        print("merge_table === ",merge_table)
 
-        x = list(merge_table['visit_count'])    # visit_count 데이터 리스트로 저장
-        y = list(merge_table['count_foreigner'])    # count_foreigner 데이터 리스트로 저장
-        country_name = (foreignvisitor_table['country_name'].unique()).item(0)  # unique는 중복되는 값을 줄여준다. 나라이름 저장
-        r = []
-        for i in x:
-            r.append(ss.pearsonr(x, y)[i])    # 상관계수 뽑기
+        x = list(merge_table['visit_count'])
+        y = list(merge_table['count_foreigner'])
+        print("x list visit count 222===", x)##
+        print("y list foreigner count 222===", y)##
 
-        # return r
+        tourist_spot = (tourspot_table['tourist_spot'].unique())
+        print("tour spot unique === ",tourist_spot)
+        r = ss.pearsonr(x, y)[0]  # 상관계수 뽑기
+        print("상관계수 === 222", r)  ##
+
+        data = {'x': x, 'y': y, 'tourist_spot': tourist_spot, 'r': r}  # 데이터 dict형식으로 저장
+        print("data 222=== ", data)  ##
+        results.append(data)
+        # foreignvisitor_table = tourspot_table.set_index('date')
+    # print("fore table index date ====", foreignvisitor_table)
+
+    # test = pd.DataFrame(json_data, columns=['tourist_spot'])
+    # print(test)
+
+
+
+        temp_table = tourspot_table[tourspot_table['tourist_spot']=='경복궁']
+        print(temp_table)
+
+
+    return results
