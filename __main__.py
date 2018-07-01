@@ -32,3 +32,4 @@ if __name__== '__main__':
 
     graph_table.plot(kind='bar')
     plt.show()
+
